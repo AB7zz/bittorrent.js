@@ -16,7 +16,7 @@ export const getPeers = (torrent, callback) => {
 
     socket.on('message', response => {
         if (respType(response) == 'connect'){
-
+            console.log('connection response received')
             // parse connection response
             const connResp = parseConnResp(response)
 
@@ -26,7 +26,7 @@ export const getPeers = (torrent, callback) => {
             // send announce request
             udpSend(socket, announceReq, urlStr)
         }else if(respType(response) == 'announce'){
-
+            console.log('announce response received')
             // parse announce response
             const announceResp = parseAnnounceResp(response)
             callback(announceResp.peers)
@@ -34,10 +34,10 @@ export const getPeers = (torrent, callback) => {
     })
 }
 
-function udpSend(socket, message, rawUrl, callback=()=>{}){
-    console.log('udpSend called')
+function udpSend(socket, message, rawUrl, callback=()=>{ console.log('sent!') }){
+    console.log('sending...')
     const parsedUrl = url.parse(rawUrl)
-    socket.send(message, 0, message.length, parsedUrl.port, parsedUrl.host, callback)
+    socket.send(message, 0, message.length, parsedUrl.port, parsedUrl.hostname, callback)
 }
 
 function respType(resp) {

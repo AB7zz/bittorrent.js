@@ -16,8 +16,12 @@ export const parseUrl = (torrent) => {
 }
 
 export const size = (torrent) => {
-    const size = torrent.info.files ? torrent.info.files.map(file => file.length).redue((a, b) => a + b) : torrent.info.length
-    return BigInt(size)
+    const size = torrent.info.files ? torrent.info.files.map(file => file.length).reduce((a, b) => a + b) : torrent.info.length
+    const Bsize = BigInt(size)
+    const buffer = Buffer.alloc(8);
+    buffer.writeBigUInt64BE(Bsize);
+
+    return buffer
 }
 
 export const infoHash = (torrent) => {
