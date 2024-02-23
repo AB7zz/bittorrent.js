@@ -1,6 +1,6 @@
 'use strict';
-import { getPeers } from './tracker.js'
-import { infoHash, open, parseUrl, size } from './torrent-parser.js'
+import { getPeers } from './src/tracker.js'
+import { infoHash, open, parseUrl, size } from './src/torrent-parser.js'
 
 const torrent = open('test.torrent')
 
