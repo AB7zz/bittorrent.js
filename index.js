@@ -1,10 +1,8 @@
 'use strict';
-import fs from 'fs'
-import bencode from 'bencode'
 import { getPeers } from './tracker.js'
-import { open } from './torrent-parser.js'
+import { infoHash, open, parseUrl, size } from './torrent-parser.js'
 
-const torrent = open('puppy.torrent')
+const torrent = open('itachi.torrent')
 
 getPeers(torrent, peers => {
     console.log('list of peers: ', peers)

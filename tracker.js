@@ -5,19 +5,29 @@ import { Buffer } from 'buffer'
 import url from 'url'
 import crypto from 'crypto'
 import { genId } from './util.js';
+import { size, infoHash } from './torrent-parser.js';
 
 export const getPeers = (torrent, callback) => {
     const socket = dgram.createSocket('udp4')
-    const urlStr = 'udp://tracker.coppersurfer.tk:6969/announce'
+    const urlStr = 'udp://tracker.opentrackr.org:1337/announce'
 
+    // send connection request
     udpSend(socket, buildConnReq(), urlStr)
 
     socket.on('message', response => {
         if (respType(response) == 'connect'){
+
+            // parse connection response
             const connResp = parseConnResp(response)
-            const announceReq = buildAnnounceReq(connResp.connectionId)
-            udpSend(socket, announceReq, url)
+
+            // prepare announce request
+            const announceReq = buildAnnounceReq(connResp.connectionId, torrent)
+
+            // send announce request
+            udpSend(socket, announceReq, urlStr)
         }else if(respType(response) == 'announce'){
+
+            // parse announce response
             const announceResp = parseAnnounceResp(response)
             callback(announceResp.peers)
         }
@@ -25,6 +35,7 @@ export const getPeers = (torrent, callback) => {
 }
 
 function udpSend(socket, message, rawUrl, callback=()=>{}){
+    console.log('udpSend called')
     const parsedUrl = url.parse(rawUrl)
     socket.send(message, 0, message.length, parsedUrl.port, parsedUrl.host, callback)
 }
@@ -36,7 +47,8 @@ function respType(resp) {
 }
 
 function buildConnReq(){
-    const buf = Buffer.alloc(16)
+    console.log('building connection request')
+    const buf = Buffer.allocUnsafe(16)
 
     // connection id
     buf.writeUInt32BE(0x417, 0)
@@ -53,6 +65,7 @@ function buildConnReq(){
 }
 
 function parseConnResp(resp){
+    console.log('parsing connection request')
     return {
         action: resp.readUInt32BE(0),
         transactionId: resp.readUInt32BE(4),
@@ -60,7 +73,8 @@ function parseConnResp(resp){
     }
 }
 
-function buildAnnounceReq(connId){
+function buildAnnounceReq(connId, torrent){
+    console.log('building announce request')
     const buf = Buffer.allocUnsafe(98)
 
     // connection id
@@ -73,16 +87,16 @@ function buildAnnounceReq(connId){
     crypto.randomBytes(4).copy(buf, 12)
 
     // info hash
-    torrentParser.infoHash(torrent).copy(buf, 16)
+    infoHash(torrent).copy(buf, 16)
 
     // peerId
-    util.genId().copy(buf, 36)
+    genId().copy(buf, 36)
 
     // downloaded
     Buffer.alloc(8).copy(buf, 56)
 
     // left
-    torrentParser.size(torrent).copy(buf, 64)
+    size(torrent).copy(buf, 64)
 
     // uploaded
     Buffer.alloc(8).copy(buf, 72)
@@ -107,6 +121,7 @@ function buildAnnounceReq(connId){
 }
 
 function parseAnnounceResp(resp){
+    console.log('parsing announce request')
     function group(iterable, groupSize){
         let groups = [];
         for (let i=0; i<iterable.length; i+=groupSize){
