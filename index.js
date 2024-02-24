@@ -1,12 +1,12 @@
 'use strict';
-import { getPeers } from './src/tracker.js'
-import { infoHash, open, parseUrl, size } from './src/torrent-parser.js'
+
+import { open } from './src/torrent-parser.js'
+import downloadTorrent from './src/download.js';
 
 const torrent = open('test.torrent')
 
-getPeers(torrent, peers => {
-    console.log('list of peers: ', peers)
-})
+const path = torrent.info.name
 
+downloadTorrent(torrent, path)
 
 
