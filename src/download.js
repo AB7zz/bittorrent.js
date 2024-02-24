@@ -18,10 +18,12 @@ export default function downloadTorrent(torrent, path){
 }
 
 function download(peer, torrent, pieces, file){
+    console.log('Peer: ', peer)
     const socket = new net.Socket()
     socket.on('error', console.log)
 
     socket.connect(peer.port, peer.ip, () => {
+        console.log('Sending handshake request to peer', peer)
         socket.write(buildHandshake(torrent))
     })
 
@@ -32,6 +34,8 @@ function download(peer, torrent, pieces, file){
 
 function msgHandler(msg, socket, pieces, queue, torrent, file) {
     if (isHandshake(msg)){
+        console.log('Received handshake response from peer')
+        console.log('Sending interested message')
         socket.write(buildInterested())
     }else{
         const m = parse(msg)
@@ -72,9 +76,11 @@ function bitfieldHandler(socket, pieces, queue, payload) {
 }
 
 function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
+    console.log('Received piece response', pieceResp)
     pieces.addReceived(pieceResp)
 
     const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin
+    console.log('handeling piece', offset)
     fs.write(file, pieceResp.block, 0, pieceResp.block.length, offset, () => {})
 
     if(pieces.isDone()){
@@ -87,13 +93,15 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 }
 
 function requestPiece(socket, pieces, queue) {
-    if (queue.choked) return null
+    if (queue.choked){
+        console.log('tried to request piece while choked')
+        return null
+    } 
 
     while (queue.length()) {
         const pieceBlock = queue.deque();
-        console.log(pieceBlock)
+        console.log('Requesting', pieceBlock)
         if (pieces.needed(pieceBlock)) {
-          // need to fix this
           socket.write(buildRequest(pieceBlock));
           pieces.addRequested(pieceBlock);
           break;
