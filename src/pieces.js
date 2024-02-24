@@ -1,6 +1,6 @@
 'use strict';
 
-import { blocksPerPiece } from "./torrent-parser";
+import { blocksPerPiece, BLOCK_LEN } from "./torrent-parser.js";
 
 export default class PieceManager{
     constructor(torrent){
@@ -14,12 +14,12 @@ export default class PieceManager{
     }
 
     addRequested(pieceBlock){
-        const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+        const blockIndex = pieceBlock.begin / BLOCK_LEN;
         this._requested[pieceBlock.index][blockIndex] = true;
     }
 
     addReceived(pieceBlock){
-        const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+        const blockIndex = pieceBlock.begin / BLOCK_LEN;
         this._received[pieceBlock.index][blockIndex] = true;
     }
 
@@ -27,7 +27,7 @@ export default class PieceManager{
         if (this._requested.every(blocks => blocks.every(i => i))) {
             this._requested = this._received.map(blocks => blocks.slice());
           }
-          const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
+          const blockIndex = pieceBlock.begin / BLOCK_LEN;
           return !this._requested[pieceBlock.index][blockIndex];
     }
 

@@ -26,11 +26,11 @@ function download(peer, torrent, pieces, file){
     })
 
     const queue = new Queue(torrent)
-    onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue, file));
+    onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue, torrent, file));
     
 }
 
-function msgHandler(msg, socket, pieces, queue) {
+function msgHandler(msg, socket, pieces, queue, torrent, file) {
     if (isHandshake(msg)){
         socket.write(buildInterested())
     }else{
@@ -55,13 +55,13 @@ function unchokeHandler(socket, pieces, queue) {
 
 function haveHandler(payload, socket, requested, queue) {
     const pieceIndex = payload.readUInt32BE(0)
-    const queueEmpty = queue.length() === 0
+    const queueEmpty = queue.length === 0
     queue.queue(pieceIndex)
     if(queueEmpty) requestPiece(socket, requested, queue)
 }
 
 function bitfieldHandler(socket, pieces, queue, payload) {
-    const queueEmpty = queue.length() === 0
+    const queueEmpty = queue.length === 0
     payload.forEach((byte, i) => {
         for (let j=0; j<8; j++){
             if (byte % 2) queue.queue(i*8+7-j)
@@ -91,6 +91,7 @@ function requestPiece(socket, pieces, queue) {
 
     while (queue.length()) {
         const pieceBlock = queue.deque();
+        console.log(pieceBlock)
         if (pieces.needed(pieceBlock)) {
           // need to fix this
           socket.write(buildRequest(pieceBlock));

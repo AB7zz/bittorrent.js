@@ -21,7 +21,8 @@ export const buildHandshake = (torrent) => {
     infoHash(torrent).copy(buf, 28)
 
     // peer id
-    buf.write(genId())
+    genId().copy(buf, 48)
+
 
     return buf
 }

@@ -35,7 +35,9 @@ export const infoHash = (torrent) => {
 export const pieceLen = (torrent, pieceIndex) => {
     const size = torrent.info.files ? torrent.info.files.map(file => file.length).reduce((a, b) => a + b) : torrent.info.length
     const Bsize = BigInt(size)
-    const totalLength = Bsize.toNumber();
+    const buffer = Buffer.alloc(8);
+    buffer.writeBigUInt64BE(Bsize);
+    const totalLength = Number(buffer.readBigUInt64BE());
     const pieceLength = torrent.info['piece length'];
   
     const lastPieceLength = totalLength % pieceLength;
